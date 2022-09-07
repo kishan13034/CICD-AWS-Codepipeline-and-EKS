@@ -1,0 +1,28 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 554515569705.dkr.ecr.us-east-1.amazonaws.com
+  build:
+    commands:
+      - echo "BUILD IMAGE & PUSH TO ECR"
+      - docker build -f Dockerfile -t $ECR_REPOSITORY_URI:latest .
+      - docker tag $ECR_REPOSITORY_URI:latest $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - docker history --no-trunc $ECR_REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $ECR_REPOSITORY_URI:latest
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - echo "Deep Vulnerability Scan ANCHORE"
+      - echo "POST_BUILD Phase Will fail if Container fails with Vulnerabilities"
+      - export COMPOSE_INTERACTIVE_NO_CLI=1
+      - curl -s https://ci-tools.anchore.io/inline_scan-v0.3.3 | bash -s -- $ECR_REPOSITORY_URI
+      - echo Writing image definitions file...
+      - printf '[{"name":"MyWebsite","imageUri":"%s"}]' $ECR_REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
+artifacts:
+  files: imagedefinitions.json

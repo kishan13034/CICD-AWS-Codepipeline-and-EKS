@@ -1,0 +1,23 @@
+<settings>
+<profiles>
+  <profile>
+    <id>demo-demo</id>
+    <activation>
+      <activeByDefault>true</activeByDefault>
+    </activation>
+    <repositories>
+      <repository>
+        <id>demo-demo</id>
+        <url>https://demo-554515569705.d.codeartifact.us-east-1.amazonaws.com/maven/demo/</url>
+      </repository>
+    </repositories>
+  </profile>
+</profiles>
+<servers>
+  <server>
+    <id>demo-demo</id>
+    <username>aws</username>
+    <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
+  </server>
+</servers>
+</settings>

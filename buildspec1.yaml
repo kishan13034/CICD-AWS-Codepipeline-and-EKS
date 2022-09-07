@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+
+  pre_build:
+    commands:
+      - pip3 install awscli --upgrade --user
+
+  build:
+    commands:
+      - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain demo --domain-owner 554515569705 --query authorizationToken --output text`
+      - mvn -s settings.xml clean package deploy
+  
+   
